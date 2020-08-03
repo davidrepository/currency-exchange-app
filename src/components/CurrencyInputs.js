@@ -1,12 +1,18 @@
 import React from 'react';
 
-const CurrencyInputs = () => {
+const CurrencyInputs = ({ currencyList }) => {
   return (
     <div className="CurrencyInputs">
-      <h1>Hello CurrencyInputs</h1>
+      <p>Hello CurrencyInputs</p>
       <input></input>
       <select>
-        <option>Option</option>
+        {currencyList.map(currency => {
+          return (
+            <option key={currency} value={currency}>
+              {currency}
+            </option>
+          );
+        })}
       </select>
     </div>
   );
