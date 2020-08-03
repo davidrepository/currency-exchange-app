@@ -1,15 +1,19 @@
 import React from 'react';
 
 const CurrencyInputs = ({
+  // Currency
   currencyList,
   selectedCurrency,
   onChangeCurrency,
+  // Amount
+  onChangeAmount,
+  amount,
 }) => {
   return (
     <div className="CurrencyInputs">
       <p>Hello CurrencyInputs</p>
-      <input></input>
-      <select value={selectedCurrency} onChange={onChangeCurrency}>
+      <input value={amount || ''} onChange={onChangeAmount}></input>
+      <select value={selectedCurrency || ''} onChange={onChangeCurrency}>
         {currencyList.map(currency => {
           return (
             <option key={currency} value={currency}>
