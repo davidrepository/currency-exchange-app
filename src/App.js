@@ -4,10 +4,13 @@ import './App.css';
 
 // Components
 import CurrencyInputs from './components/CurrencyInputs/index';
+import CurrencyHistory from './components/CurrencyHistory';
+import Table from './components/Table';
 
 // Variables
 const BASE_URL = 'https://api.exchangeratesapi.io';
 const BASE_URL_LATEST = `${BASE_URL}/latest`;
+const BASE_URL_HISTORY = `${BASE_URL}/history`;
 
 const App = () => {
   // [SELECT] Currency
@@ -18,10 +21,21 @@ const App = () => {
   const [amount, setAmount] = useState(1);
   const [fromAmount, setFromAmount] = useState();
   const [toAmount, setToAmount] = useState();
+  // [DATAPICKER] History
+  const [dateStart, setDateStart] = useState();
+  const [dateEnd, setDateEnd] = useState();
+  // const [currentDate, setCurrentDate] = useState();
+  const [currencyHistoryList, setCurrencyHistoryList] = useState();
   // Others
   const [exchangeRate, setExchangeRate] = useState();
   const [isFirstAmountActive, setIsFirstAmountActive] = useState(true);
 
+  const checkWhichAmountIsActive = () => {
+    if (!exchangeRate) return;
+    return isFirstAmountActive
+      ? updateToAmountInput()
+      : updateFromAmountInput();
+  };
   // First run
   useEffect(() => {
     const FirstRun = async () => {
@@ -32,6 +46,9 @@ const App = () => {
         setCurrencyList([base, ...Object.keys(rates)]);
         setFromCurrency(base);
         setToCurrency(firstCurrency);
+        setExchangeRate(rates[firstCurrency]);
+        checkWhichAmountIsActive();
+        generateCurrentDate();
       } catch (error) {
         console.log({
           error,
@@ -62,11 +79,11 @@ const App = () => {
       };
 
       fetchSelectedCurrencies();
-      console.log({ fromCurrency, toCurrency });
+      fetchHistory();
     }
   }, [fromCurrency, toCurrency]);
 
-  // Amount
+  // [INPUT] Amount
   useEffect(() => {
     checkWhichAmountIsActive();
   }, [amount, exchangeRate]);
@@ -91,12 +108,41 @@ const App = () => {
     setIsFirstAmountActive(false);
   };
 
-  const checkWhichAmountIsActive = () => {
-    if (!exchangeRate) return;
-    return isFirstAmountActive
-      ? updateToAmountInput()
-      : updateFromAmountInput();
+  // [DATE] History
+
+  // Helpers
+  const generateCurrentDate = () => {
+    const currentDate = new Date();
+    const firstDay = '01';
+    const currentDay = currentDate.getDate();
+    const currentMonth = currentDate.getMonth() + 1;
+    const dayFormat = currentDay >= 9 ? currentMonth : `0${currentDay}`;
+    const monthFormat = currentMonth >= 9 ? currentMonth : `0${currentMonth}`;
+    const currentYear = currentDate.getFullYear();
+
+    const dateEndFormat = `${currentYear}-${monthFormat}-${dayFormat}`;
+    const dateStartFormat = `${currentYear}-${monthFormat}-${firstDay}`;
+
+    setDateEnd(dateEndFormat);
+    setDateStart(dateStartFormat);
   };
+
+  const fetchHistory = async () => {
+    if (!dateStart || !dateEnd) return;
+    try {
+      const getHistory = await axios.get(
+        `${BASE_URL_HISTORY}?start_at=${dateStart}&end_at=${dateEnd}&base=${fromCurrency}&symbols=${toCurrency}`,
+      );
+      const { rates } = getHistory.data;
+      setCurrencyHistoryList(Object.entries(rates));
+    } catch (error) {
+      console.log({ error, msg: 'data error' });
+    }
+  };
+
+  useEffect(() => {
+    fetchHistory();
+  }, [dateStart, dateEnd]);
 
   return (
     <div className="App">
@@ -118,6 +164,19 @@ const App = () => {
         // Amount
         amount={toAmount}
         onChangeAmount={onChangeToAmount}
+      />
+      <CurrencyHistory
+        currentDate={dateStart}
+        onChangeDate={e => setDateStart(e.target.value)}
+      />
+      <CurrencyHistory
+        currentDate={dateEnd}
+        onChangeDate={e => setDateEnd(e.target.value)}
+      />
+      <Table
+        fromCurrency={fromCurrency}
+        toCurrency={toCurrency}
+        currencyHistoryList={currencyHistoryList}
       />
     </div>
   );
