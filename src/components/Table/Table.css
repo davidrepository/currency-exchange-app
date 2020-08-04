@@ -1,0 +1,18 @@
+.table {
+  margin: 0 auto;
+  margin-top: 32px;
+}
+
+.table tr {
+  height: 40px;
+  /* : 2px solid; */
+}
+
+.table tr td {
+  padding: 0 40px;
+}
+
+.table th {
+  border-top: 1px solid red;
+  border-bottom: 1px solid red;
+}

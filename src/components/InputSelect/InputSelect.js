@@ -1,4 +1,7 @@
 import React from 'react';
+import './InputSelect.css';
+
+// const { dr } = Form;con
 
 const CurrencyInputs = ({
   // Currency
@@ -9,12 +12,13 @@ const CurrencyInputs = ({
   onChangeAmount,
   amount,
   currencyLoading,
+  label,
 }) => {
   return (
-    <div className="CurrencyInputs">
-      <p>{currencyLoading ? 'loading' : 'Hello CurrencyInputs'}</p>
-      <input value={amount || ''} onChange={onChangeAmount}></input>
-      <select value={selectedCurrency || ''} onChange={onChangeCurrency}>
+    <div className="currency-inputs">
+      <label>{label}</label>
+      <input value={amount} onChange={onChangeAmount} />
+      <select value={selectedCurrency} onChange={onChangeCurrency}>
         {currencyList.map(currency => {
           return (
             <option key={currency} value={currency}>
@@ -22,6 +26,7 @@ const CurrencyInputs = ({
             </option>
           );
         })}
+        <option></option>
       </select>
     </div>
   );

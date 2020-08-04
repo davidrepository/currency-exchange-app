@@ -1,0 +1,25 @@
+input,
+select {
+  box-sizing: border-box;
+  height: 40px;
+  padding: 0 16px;
+  font-size: 16px;
+  border-radius: 8px;
+  background-color: rgba(255, 255, 255, 0.5);
+}
+
+input {
+  width: 320px;
+  border: none;
+  border-radius: 8px;
+  margin-right: 16px;
+}
+
+input:focus,
+select:focus {
+  background-color: #fff;
+  outline: none;
+  transition: 0.2s;
+}
+
+/* input */

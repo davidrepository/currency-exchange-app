@@ -3,9 +3,9 @@ import React, { useEffect } from 'react';
 import './App.css';
 
 // Components
-import CurrencyInputs from './components/CurrencyInputs/index';
-import CurrencyHistory from './components/CurrencyHistory';
-import Table from './components/Table';
+import CurrencyInputs from './components/InputSelect/InputSelect';
+import CurrencyHistory from './components/CurrencyHistory/CurrencyHistory';
+import Table from './components/Table/Table';
 
 // Redux
 import { useSelector, useDispatch } from 'react-redux';
@@ -13,8 +13,8 @@ import {
   fetchCurrencyData,
   setFromCurrency,
   setToCurrency,
-  setExchangeRate,
   fetchSelectedCurrencies,
+  currencyLoading,
 } from './redux/ducks/currencyDuck';
 
 import {
@@ -50,25 +50,35 @@ const App = () => {
 
   // [DATAPICKER] History
   const historyDuck = useSelector(({ historyDuck }) => historyDuck);
-  const { dateStart, dateEnd, currencyHistoryList } = historyDuck;
+  const {
+    dateStart,
+    dateEnd,
+    currencyHistoryList,
+    historyLoading,
+  } = historyDuck;
   // const [currencyHistoryList, setCurrencyHistoryList] = useState();
 
   // First run
   useEffect(() => {
     dispatch(fetchCurrencyData());
     dispatch(generateCurrentDate());
-    checkWhichAmountIsActive();
   }, []);
 
   // [SELECT] Currency
   useEffect(() => {
-    if (fromCurrency && toCurrency) {
+    if (!fromCurrency && !toCurrency) return;
+
+    dispatch(fetchSelectedCurrencies(fromCurrency, toCurrency));
+    dispatch(fetchHistory(dateStart, dateEnd, fromCurrency, toCurrency));
+
+    return () => {
       dispatch(fetchSelectedCurrencies(fromCurrency, toCurrency));
       dispatch(fetchHistory(dateStart, dateEnd, fromCurrency, toCurrency));
-    }
+    };
   }, [fromCurrency, toCurrency]);
 
   // [INPUT] Amount
+
   const onChangeFromAmount = e => {
     dispatch(setAmount(e.target.value));
     dispatch(setIsFirstAmountActive(true));
@@ -98,18 +108,30 @@ const App = () => {
 
   useEffect(() => {
     checkWhichAmountIsActive();
+
+    return () => {
+      checkWhichAmountIsActive();
+    };
   }, [amount, exchangeRate]);
 
   // [DATE] History
   useEffect(() => {
     if (!dateStart || !dateEnd) return;
-
+    if (!fromCurrency && !toCurrency) return;
+    // use;
     dispatch(fetchHistory(dateStart, dateEnd, fromCurrency, toCurrency));
+
+    return () => {
+      dispatch(fetchHistory(dateStart, dateEnd, fromCurrency, toCurrency));
+    };
   }, [dateStart, dateEnd]);
 
   return (
     <div className="App">
-      <h1>Hello App</h1>
+      <a className="repo" href="">
+        Repo link
+      </a>
+      <h1>{currencyLoading ? 'Loading...' : 'Currency Exchange'}</h1>
       <CurrencyInputs
         // Currency
         currencyList={currencyList}
@@ -120,7 +142,7 @@ const App = () => {
         onChangeAmount={onChangeFromAmount}
         currencyLoading={currencyLoading}
       />
-      <div>=</div>
+      <div className="equivalent">=</div>
       <CurrencyInputs
         currencyList={currencyList}
         selectedCurrency={toCurrency}
@@ -130,11 +152,14 @@ const App = () => {
         onChangeAmount={onChangeToAmount}
         currencyLoading={currencyLoading}
       />
+      <h1>{historyLoading ? 'Loading...' : 'History'}</h1>
       <CurrencyHistory
+        label={'from'}
         currentDate={dateStart}
         onChangeDate={e => dispatch(setDateStart(e.target.value))}
       />
       <CurrencyHistory
+        label={'to'}
         currentDate={dateEnd}
         onChangeDate={e => dispatch(setDateEnd(e.target.value))}
       />

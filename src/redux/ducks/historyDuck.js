@@ -1,14 +1,13 @@
 import axios from 'axios';
+import { BASE_URL_HISTORY } from '../../utils/keys';
 
 const SET_DATE_START = 'SET_DATE_START';
 const SET_DATE_END = 'SET_DATE_END';
 const SET_CURRENCY_HISTORY_LIST = 'SET_CURRENCY_HISTORY_LIST';
-
-const BASE_URL = 'https://api.exchangeratesapi.io';
-const BASE_URL_LATEST = `${BASE_URL}/latest`;
-const BASE_URL_HISTORY = `${BASE_URL}/history`;
+const HISTORY_LOADING = 'HISTORY_LOADING';
 
 const initialState = {
+  historyLoading: false,
   dateStart: '',
   dateEnd: '',
   currencyHistoryList: [],
@@ -16,6 +15,8 @@ const initialState = {
 
 export default (state = initialState, { type, payload }) => {
   switch (type) {
+    case HISTORY_LOADING:
+      return { ...state, historyLoading: payload };
     case SET_DATE_START:
       return { ...state, dateStart: payload };
     case SET_DATE_END:
@@ -62,11 +63,13 @@ export const fetchHistory = (
   toCurrency,
 ) => async dispatch => {
   try {
+    dispatch({ type: HISTORY_LOADING, payload: true });
     const getHistory = await axios.get(
       `${BASE_URL_HISTORY}?start_at=${dateStart}&end_at=${dateEnd}&base=${fromCurrency}&symbols=${toCurrency}`,
     );
     const { rates } = getHistory.data;
     dispatch(setCurrencyHistoryList(Object.entries(rates)));
+    dispatch({ type: HISTORY_LOADING, payload: false });
   } catch (error) {
     console.log({ error, msg: 'data error' });
   }

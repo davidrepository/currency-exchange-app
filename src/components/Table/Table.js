@@ -1,17 +1,17 @@
 import React from 'react';
+import './Table.css';
 
 const Table = ({ fromCurrency, toCurrency, currencyHistoryList }) => {
   return (
     <div className="Table">
-      <p>
-        1 {fromCurrency} = {toCurrency}
-      </p>
       {currencyHistoryList !== undefined && currencyHistoryList.length > 0 ? (
-        <table>
+        <table className="table">
           <tbody>
             <tr>
               <th>Date</th>
-              <th>{toCurrency}</th>
+              <th>
+                1 {fromCurrency} = {toCurrency}
+              </th>
             </tr>
             {currencyHistoryList.map(val => {
               return (
