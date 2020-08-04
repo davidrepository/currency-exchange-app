@@ -8,10 +8,11 @@ const CurrencyInputs = ({
   // Amount
   onChangeAmount,
   amount,
+  currencyLoading,
 }) => {
   return (
     <div className="CurrencyInputs">
-      <p>Hello CurrencyInputs</p>
+      <p>{currencyLoading ? 'loading' : 'Hello CurrencyInputs'}</p>
       <input value={amount || ''} onChange={onChangeAmount}></input>
       <select value={selectedCurrency || ''} onChange={onChangeCurrency}>
         {currencyList.map(currency => {

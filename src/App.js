@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+// React
+import React, { useEffect } from 'react';
 import './App.css';
 
 // Components
@@ -7,28 +7,87 @@ import CurrencyInputs from './components/CurrencyInputs/index';
 import CurrencyHistory from './components/CurrencyHistory';
 import Table from './components/Table';
 
-// Variables
-const BASE_URL = 'https://api.exchangeratesapi.io';
-const BASE_URL_LATEST = `${BASE_URL}/latest`;
-const BASE_URL_HISTORY = `${BASE_URL}/history`;
+// Redux
+import { useSelector, useDispatch } from 'react-redux';
+import {
+  fetchCurrencyData,
+  setFromCurrency,
+  setToCurrency,
+  setExchangeRate,
+  fetchSelectedCurrencies,
+} from './redux/ducks/currencyDuck';
+
+import {
+  setAmount,
+  setFromAmount,
+  setToAmount,
+  setIsFirstAmountActive,
+} from './redux/ducks/amountDuck';
+
+import {
+  setDateStart,
+  setDateEnd,
+  generateCurrentDate,
+  fetchHistory,
+} from './redux/ducks/historyDuck';
 
 const App = () => {
+  const dispatch = useDispatch();
+
   // [SELECT] Currency
-  const [currencyList, setCurrencyList] = useState([]);
-  const [fromCurrency, setFromCurrency] = useState();
-  const [toCurrency, setToCurrency] = useState();
+  const currencyDuck = useSelector(({ currencyDuck }) => currencyDuck);
+  const {
+    currencyList,
+    fromCurrency,
+    toCurrency,
+    exchangeRate,
+    currencyLoading,
+  } = currencyDuck;
+
   // [INPUT] Amount
-  const [amount, setAmount] = useState(1);
-  const [fromAmount, setFromAmount] = useState();
-  const [toAmount, setToAmount] = useState();
+  const amountDuck = useSelector(({ amountDuck }) => amountDuck);
+  const { amount, fromAmount, toAmount, isFirstAmountActive } = amountDuck;
+
   // [DATAPICKER] History
-  const [dateStart, setDateStart] = useState();
-  const [dateEnd, setDateEnd] = useState();
-  // const [currentDate, setCurrentDate] = useState();
-  const [currencyHistoryList, setCurrencyHistoryList] = useState();
-  // Others
-  const [exchangeRate, setExchangeRate] = useState();
-  const [isFirstAmountActive, setIsFirstAmountActive] = useState(true);
+  const historyDuck = useSelector(({ historyDuck }) => historyDuck);
+  const { dateStart, dateEnd, currencyHistoryList } = historyDuck;
+  // const [currencyHistoryList, setCurrencyHistoryList] = useState();
+
+  // First run
+  useEffect(() => {
+    dispatch(fetchCurrencyData());
+    dispatch(generateCurrentDate());
+    checkWhichAmountIsActive();
+  }, []);
+
+  // [SELECT] Currency
+  useEffect(() => {
+    if (fromCurrency && toCurrency) {
+      dispatch(fetchSelectedCurrencies(fromCurrency, toCurrency));
+      dispatch(fetchHistory(dateStart, dateEnd, fromCurrency, toCurrency));
+    }
+  }, [fromCurrency, toCurrency]);
+
+  // [INPUT] Amount
+  const onChangeFromAmount = e => {
+    dispatch(setAmount(e.target.value));
+    dispatch(setIsFirstAmountActive(true));
+  };
+
+  const onChangeToAmount = e => {
+    dispatch(setAmount(e.target.value));
+    dispatch(setIsFirstAmountActive(false));
+  };
+
+  const updateFromAmountInput = () => {
+    dispatch(setFromAmount(amount / exchangeRate));
+    dispatch(setToAmount(amount));
+  };
+
+  const updateToAmountInput = () => {
+    dispatch(setFromAmount(amount));
+    dispatch(setToAmount(amount * exchangeRate));
+  };
 
   const checkWhichAmountIsActive = () => {
     if (!exchangeRate) return;
@@ -36,112 +95,16 @@ const App = () => {
       ? updateToAmountInput()
       : updateFromAmountInput();
   };
-  // First run
-  useEffect(() => {
-    const FirstRun = async () => {
-      try {
-        const getCurrencyList = await axios.get(BASE_URL_LATEST);
-        const { base, rates } = getCurrencyList.data;
-        const firstCurrency = Object.keys(rates)[0];
-        setCurrencyList([base, ...Object.keys(rates)]);
-        setFromCurrency(base);
-        setToCurrency(firstCurrency);
-        setExchangeRate(rates[firstCurrency]);
-        checkWhichAmountIsActive();
-        generateCurrentDate();
-      } catch (error) {
-        console.log({
-          error,
-          msg: 'Fetch currency list error',
-        });
-      }
-    };
 
-    FirstRun();
-  }, []);
-
-  // [SELECT] Currency
-  useEffect(() => {
-    if (fromCurrency && toCurrency) {
-      const fetchSelectedCurrencies = async () => {
-        try {
-          const getSelectedCurrencies = await axios.get(
-            `${BASE_URL_LATEST}?base=${fromCurrency}&symbols=${toCurrency}`,
-          );
-          const { rates } = getSelectedCurrencies.data;
-          setExchangeRate(rates[Object.keys(rates)[0]]);
-        } catch (error) {
-          console.log({
-            error,
-            msg: 'fetch selected curriences error',
-          });
-        }
-      };
-
-      fetchSelectedCurrencies();
-      fetchHistory();
-    }
-  }, [fromCurrency, toCurrency]);
-
-  // [INPUT] Amount
   useEffect(() => {
     checkWhichAmountIsActive();
   }, [amount, exchangeRate]);
 
-  const updateFromAmountInput = () => {
-    setToAmount(amount);
-    setFromAmount(amount / exchangeRate);
-  };
-
-  const updateToAmountInput = () => {
-    setToAmount(amount * exchangeRate);
-    setFromAmount(amount);
-  };
-
-  const onChangeFromAmount = e => {
-    setAmount(e.target.value);
-    setIsFirstAmountActive(true);
-  };
-
-  const onChangeToAmount = e => {
-    setAmount(e.target.value);
-    setIsFirstAmountActive(false);
-  };
-
   // [DATE] History
-
-  // Helpers
-  const generateCurrentDate = () => {
-    const currentDate = new Date();
-    const firstDay = '01';
-    const currentDay = currentDate.getDate();
-    const currentMonth = currentDate.getMonth() + 1;
-    const dayFormat = currentDay >= 9 ? currentMonth : `0${currentDay}`;
-    const monthFormat = currentMonth >= 9 ? currentMonth : `0${currentMonth}`;
-    const currentYear = currentDate.getFullYear();
-
-    const dateEndFormat = `${currentYear}-${monthFormat}-${dayFormat}`;
-    const dateStartFormat = `${currentYear}-${monthFormat}-${firstDay}`;
-
-    setDateEnd(dateEndFormat);
-    setDateStart(dateStartFormat);
-  };
-
-  const fetchHistory = async () => {
-    if (!dateStart || !dateEnd) return;
-    try {
-      const getHistory = await axios.get(
-        `${BASE_URL_HISTORY}?start_at=${dateStart}&end_at=${dateEnd}&base=${fromCurrency}&symbols=${toCurrency}`,
-      );
-      const { rates } = getHistory.data;
-      setCurrencyHistoryList(Object.entries(rates));
-    } catch (error) {
-      console.log({ error, msg: 'data error' });
-    }
-  };
-
   useEffect(() => {
-    fetchHistory();
+    if (!dateStart || !dateEnd) return;
+
+    dispatch(fetchHistory(dateStart, dateEnd, fromCurrency, toCurrency));
   }, [dateStart, dateEnd]);
 
   return (
@@ -151,27 +114,29 @@ const App = () => {
         // Currency
         currencyList={currencyList}
         selectedCurrency={fromCurrency}
-        onChangeCurrency={e => setFromCurrency(e.target.value)}
+        onChangeCurrency={e => dispatch(setFromCurrency(e.target.value))}
         // Amount
         amount={fromAmount}
         onChangeAmount={onChangeFromAmount}
+        currencyLoading={currencyLoading}
       />
       <div>=</div>
       <CurrencyInputs
         currencyList={currencyList}
         selectedCurrency={toCurrency}
-        onChangeCurrency={e => setToCurrency(e.target.value)}
+        onChangeCurrency={e => dispatch(setToCurrency(e.target.value))}
         // Amount
         amount={toAmount}
         onChangeAmount={onChangeToAmount}
+        currencyLoading={currencyLoading}
       />
       <CurrencyHistory
         currentDate={dateStart}
-        onChangeDate={e => setDateStart(e.target.value)}
+        onChangeDate={e => dispatch(setDateStart(e.target.value))}
       />
       <CurrencyHistory
         currentDate={dateEnd}
-        onChangeDate={e => setDateEnd(e.target.value)}
+        onChangeDate={e => dispatch(setDateEnd(e.target.value))}
       />
       <Table
         fromCurrency={fromCurrency}
