@@ -128,8 +128,12 @@ const App = () => {
 
   return (
     <div className="App">
-      <a className="repo" href="">
-        Repo link
+      <a
+        className="repo"
+        target="_blank"
+        href="https://github.com/davidrepository/currency-app"
+      >
+        Repository Link
       </a>
       <h1>{currencyLoading ? 'Loading...' : 'Currency Exchange'}</h1>
       <CurrencyInputs
