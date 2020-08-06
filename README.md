@@ -12,6 +12,6 @@ Run `npm install`
 
 Run `npm start`
 
-### Open it
+### 4. Open it
 
 Go to `http://localhost:3000`

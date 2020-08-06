@@ -1,0 +1,15 @@
+.row {
+  display: flex;
+  justify-content: center;
+}
+
+.first-row {
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+
+.cell {
+  width: 160px;
+  text-align: left;
+  line-height: 32px;
+}

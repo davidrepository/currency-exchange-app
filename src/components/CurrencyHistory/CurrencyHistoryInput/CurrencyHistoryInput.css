@@ -1,0 +1,8 @@
+.CurrencyHistoryInput label {
+  width: 100%;
+  float: left;
+}
+
+.CurrencyHistoryInput * {
+  width: 100%;
+}

@@ -1,4 +1,4 @@
-// React
+// --- REACT --- //
 import React from 'react';
 import ReactDOM from 'react-dom';
 import * as serviceWorker from './serviceWorker';
@@ -6,10 +6,10 @@ import * as serviceWorker from './serviceWorker';
 // Components
 import App from './App';
 
-// Styling
+// Styles
 import './index.css';
 
-// Redux
+// --- REDUX --- ///
 import { Provider } from 'react-redux';
 import store from './redux/store';
 

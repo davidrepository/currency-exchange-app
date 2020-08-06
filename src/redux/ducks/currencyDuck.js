@@ -1,82 +1,98 @@
 import axios from 'axios';
 import { BASE_URL_LATEST } from '../../utils/keys';
 
-// Variables
-const LOADING_CURRENCY = 'LOADING_CURRENCY';
-const SET_CURRENCY_LIST = 'SET_CURRENCY_LIST';
+const FETCH_CURRENCY_LIST_INPROGRESS = 'FETCH_CURRENCY_LIST_INPROGRESS';
+const FETCH_CURRENCY_LIST_SUCCESS = 'FETCH_CURRENCY_LIST_SUCCESS';
+const FETCH_CURRENCY_LIST_ERROR = 'FETCH_CURRENCY_LIST_ERROR';
 const SET_FROM_CURRENCY = 'SET_FROM_CURRENCY';
 const SET_TO_CURRENCY = 'SET_TO_CURRENCY';
-const SET_EXCHANGE_RATE = 'SET_EXCHANGE_RATE';
+const REVERSE_CURRENCY = 'REVERSE_CURRENCY';
 
 const initialState = {
   currencyList: [],
-  currencyLoading: false,
+  currencyListInProgress: false,
   fromCurrency: '',
   toCurrency: '',
-  exchangeRate: 0,
+  error: null,
 };
 
 export default (state = initialState, { type, payload }) => {
   switch (type) {
-    case LOADING_CURRENCY:
-      return { ...state, currencyLoading: payload };
-    case SET_CURRENCY_LIST:
-      return { ...state, currencyList: payload };
+    case FETCH_CURRENCY_LIST_INPROGRESS:
+      return { ...state, currencyListInProgress: true };
+    case FETCH_CURRENCY_LIST_SUCCESS:
+      return {
+        ...state,
+        currencyList: payload.currencyList,
+        fromCurrency: payload.currencies.fromCurrency,
+        toCurrency: payload.currencies.toCurrency,
+        currencyListInProgress: false,
+      };
+    case FETCH_CURRENCY_LIST_ERROR:
+      return {
+        ...state,
+        currencyListInProgress: false,
+        error: payload,
+      };
     case SET_FROM_CURRENCY:
       return { ...state, fromCurrency: payload };
     case SET_TO_CURRENCY:
       return { ...state, toCurrency: payload };
-    case SET_EXCHANGE_RATE:
-      return { ...state, exchangeRate: payload };
+    case REVERSE_CURRENCY:
+      return {
+        ...state,
+        fromCurrency: state.toCurrency,
+        toCurrency: state.fromCurrency,
+      };
+
     default:
       return state;
   }
 };
 
-export const fetchCurrencyData = () => async dispatch => {
-  dispatch({ type: LOADING_CURRENCY, payload: true });
+export const fetchCurrencyList = () => async dispatch => {
+  dispatch({ type: FETCH_CURRENCY_LIST_INPROGRESS });
 
   try {
     const getCurrencyList = await axios.get(BASE_URL_LATEST);
     const { base, rates } = getCurrencyList.data;
+
     const firstCurrency = Object.keys(rates)[0];
 
-    const setCurrencyList = [base, ...Object.keys(rates)];
-    const setFromCurrency = base;
-    const setToCurrency = firstCurrency;
-    const setExchangeRate = rates[firstCurrency];
+    const fetchedCurrencyList = [base, ...Object.keys(rates)];
+    const fromCurrency = base;
+    const toCurrency = firstCurrency;
+    // const setExchangeRate = rates[firstCurrency];
 
-    dispatch({ type: SET_CURRENCY_LIST, payload: setCurrencyList });
-    dispatch({ type: SET_FROM_CURRENCY, payload: setFromCurrency });
-    dispatch({ type: SET_TO_CURRENCY, payload: setToCurrency });
-    dispatch({ type: SET_EXCHANGE_RATE, payload: setExchangeRate });
-    dispatch({ type: LOADING_CURRENCY, payload: false });
+    // const elo = fetchedCurrencyList.forEach(item => {
+    //   console.log(item);
+    // });
+
+    const payload = {
+      currencyList: fetchedCurrencyList,
+      currencies: { fromCurrency, toCurrency },
+    };
+
+    dispatch({
+      type: FETCH_CURRENCY_LIST_SUCCESS,
+      payload,
+    });
   } catch (error) {
-    dispatch({ type: SET_CURRENCY_LIST, payload: [] });
-    dispatch({ type: LOADING_CURRENCY, payload: false });
+    dispatch({ type: FETCH_CURRENCY_LIST_ERROR, payload: error });
     console.log(error);
   }
 };
 
-export const fetchSelectedCurrencies = (
-  fromCurrency,
-  toCurrency,
-) => async dispatch => {
-  dispatch({ type: LOADING_CURRENCY, payload: true });
+export const fetchCurrencyListInProgress = () => async dispatch => {
+  dispatch({ type: FETCH_CURRENCY_LIST_INPROGRESS });
+};
 
-  try {
-    const getSelectedCurrencies = await axios.get(
-      `${BASE_URL_LATEST}?base=${fromCurrency}&symbols=${toCurrency}`,
-    );
-    const { rates } = getSelectedCurrencies.data;
-    dispatch(setExchangeRate(rates[Object.keys(rates)[0]]));
-    dispatch({ type: LOADING_CURRENCY, payload: false });
-  } catch (error) {
-    console.log({
-      error,
-      msg: 'fetch selected curriences error',
-    });
-  }
+export const fetchCurrencyListSuccess = payload => async dispatch => {
+  dispatch({ type: FETCH_CURRENCY_LIST_SUCCESS, payload });
+};
+
+export const fetchCurrencyListError = payload => async dispatch => {
+  dispatch({ type: FETCH_CURRENCY_LIST_ERROR, payload });
 };
 
 export const setFromCurrency = payload => async dispatch => {
@@ -87,6 +103,6 @@ export const setToCurrency = payload => async dispatch => {
   dispatch({ type: SET_TO_CURRENCY, payload });
 };
 
-export const setExchangeRate = payload => async dispatch => {
-  dispatch({ type: SET_EXCHANGE_RATE, payload });
+export const reverseCurrency = () => async dispatch => {
+  dispatch({ type: REVERSE_CURRENCY });
 };

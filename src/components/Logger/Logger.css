@@ -1,0 +1,20 @@
+.Logger {
+  color: #ccc;
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+}
+
+.Logger li {
+  line-height: 32px;
+}
+
+.Logger .pending {
+  color: #eac00b;
+  font-weight: 600;
+}
+
+.Logger .success {
+  color: #2cbc63;
+  font-weight: 600;
+}

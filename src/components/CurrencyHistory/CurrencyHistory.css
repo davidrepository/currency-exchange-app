@@ -1,5 +1,16 @@
-label {
-  width: 100%;
-  float: left;
-  margin: 16px 0;
+.CurrencyHistory {
+  display: flex;
+  gap: 96px;
+  /* width: 500px; */
+}
+
+.CurrencyHistory .sticky {
+  position: sticky;
+  top: 32px;
+}
+
+.CurrencyHistory .side .input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
