@@ -46,7 +46,7 @@ const CurrencyExchange = () => {
 
   return (
     <div className="section CurrencyExchange">
-      <h1>Currency Exchange</h1>
+      <h1>Currency Exchange :)</h1>
       <CurrencyInputs
         currencyList={currencyList}
         selectedCurrency={fromCurrency}
