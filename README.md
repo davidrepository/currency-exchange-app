@@ -3,7 +3,7 @@ This Repo actually needs an API Key to run the App correctly.
 
 In this case the video of the App will be provided soon.
 
-### 1. Copy repository
+### 1. Get repository
 `git clone https://github.com/davidrepository/currency-exchange-app.git`
 
 ### 2. Install packages
